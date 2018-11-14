@@ -157,8 +157,7 @@ error <- combo %>%
 
 election_data <- error %>%
   group_by(state) %>%
-  summarize(rep_adv = mean(rep_adv), actual = mean(actual), error = mean(error)) %>%
-  adorn_pct_formatting()
+  summarize(rep_adv = mean(rep_adv), actual = mean(actual), error = mean(error))
 
 election_context <- election_context %>%
   group_by(state) %>%
