@@ -1,4 +1,7 @@
 library(shiny)
+library(tidyverse)
+
+app_data <- readRDS("error.rds")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -6,17 +9,12 @@ ui <- fluidPage(
    # Application title
    titlePanel("GOV1005 PSET 7"),
    
-   # Sidebar with a slider input for number of bins 
+   # Sidebar
    sidebarLayout(
       sidebarPanel(
-         sliderInput("bins",
-                     "Number of bins:",
-                     min = 1,
-                     max = 50,
-                     value = 30)
       ),
       
-      # Show a plot of the generated distribution
+      # Show a plot
       mainPanel(
          plotOutput("distPlot")
       )
@@ -27,12 +25,7 @@ ui <- fluidPage(
 server <- function(input, output) {
    
    output$distPlot <- renderPlot({
-      # generate bins based on input$bins from ui.R
-      x    <- faithful[, 2] 
-      bins <- seq(min(x), max(x), length.out = input$bins + 1)
-      
-      # draw the histogram with the specified number of bins
-      hist(x, breaks = bins, col = 'darkgray', border = 'white')
+     ggplot(app_data, aes(x = error, y = rep_adv)) + geom_point()
    })
 }
 

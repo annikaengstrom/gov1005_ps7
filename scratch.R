@@ -1,5 +1,6 @@
 library(fs)
 library(tidyverse)
+library(janitor)
 
 # download upshot elections data
 
@@ -120,7 +121,7 @@ results <- results_data %>%
   mutate(district = paste(0, district, sep = "")) %>%
   select(state, district, dem_votes, rep_votes)
 
-results <- q4_results %>%
+results <- results %>%
   unite("district", state, district, sep = "-", remove = FALSE)
 
 results$district <- lapply(results$district, remove_zero)
@@ -137,6 +138,16 @@ combo <- left_join(pre, results, by = "district")
 # calculate the actual rep adv
 
 combo <- combo %>%
-  mutate(actual = (rep_votes - dem_votes) / (rep_votes + dem_votes)) %>%
-  select(district, rep_adv, actual, state) %>%
+  mutate(actual = (rep_votes - dem_votes) / (rep_votes + dem_votes))
+
+# calculate error margin
+
+error <- combo %>%
+  mutate(error = actual - rep_adv) %>%
+  select(district, state, rep_adv, actual, error) %>%
   adorn_pct_formatting()
+
+# now, we mess with the context data to prepare it for the app.
+
+
+
