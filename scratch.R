@@ -151,13 +151,11 @@ error <- combo %>%
   mutate(error = actual - rep_adv) %>%
   select(district, state, rep_adv, actual, error)
 
-# now, we mess with the context data to prepare it for the app.
-# the context data is in terms of the state ... so let's just group everything by state.
-# I'm going to start by going back and grouping all the election results data also by state - averaging it by state
+election_data <- error
 
-election_data <- error %>%
-  group_by(state) %>%
-  summarize(rep_adv = mean(rep_adv), actual = mean(actual), error = mean(error))
+# now, we mess with the context data to prepare it for the app.
+# the context data is in terms of the state, no district available (county doesn't 
+# necessary map on to district) ... so let's just group everything by state.
 
 election_context <- election_context %>%
   group_by(state) %>%
