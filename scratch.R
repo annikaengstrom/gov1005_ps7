@@ -74,8 +74,13 @@ no_dupes <- total_house_data %>%
   filter(! district %in% dupes_data) %>%
   select(district, response, final_weight)
 
+sen_gov_data <- all %>%
+  filter(grepl("sen", source) == TRUE | grepl("gov", source) == TRUE) %>%
+  mutate(district = str_sub(source, start= -11, end = -7))
+
 # combine duplicated house polls with nonduplicated house polls then also with governor and senate polls
 pre <- merge(dupes, no_dupes, all = TRUE)
+pre <- merge(pre, sen_gov_data, all = TRUE)
 
 # calculate the rep adv for all the polls
 pre <- pre %>%
@@ -144,10 +149,67 @@ combo <- combo %>%
 
 error <- combo %>%
   mutate(error = actual - rep_adv) %>%
-  select(district, state, rep_adv, actual, error) %>%
-  adorn_pct_formatting()
+  select(district, state, rep_adv, actual, error)
 
 # now, we mess with the context data to prepare it for the app.
+# the context data is in terms of the state ... so let's just group everything by state.
+# I'm going to start by going back and grouping all the election results data also by state - averaging it by state
+
+election_data <- error %>%
+  group_by(state) %>%
+  summarize(rep_adv = mean(rep_adv), actual = mean(actual), error = mean(error)) %>%
+  adorn_pct_formatting()
+
+election_context <- election_context %>%
+  group_by(state) %>%
+  summarise(
+    trump16 = sum(trump16),
+    clinton16 = sum(clinton16),
+    otherpres16 = sum(otherpres16),
+    romney12 = sum(romney12), 
+    obama12 = sum(obama12),
+    otherpres12 = sum(otherpres12),
+    white_pct = mean(white_pct) / 100,
+    black_pct = mean(black_pct) / 100,
+    hispanic_pct = mean(hispanic_pct) / 100,
+    nonwhite_pct = mean(nonwhite_pct) / 100,
+    foreignborn_pct = mean(foreignborn_pct) / 100,
+    female_pct = mean(female_pct) / 100,
+    age29andunder_pct = mean(age29andunder_pct) / 100,
+    age65andolder_pct = mean(age65andolder_pct) / 100
+  ) %>%
+  mutate(pres16_total = trump16 + clinton16 + otherpres16, 
+         pres12_total = romney12 + obama12 + otherpres12,
+         trump_pct = trump16 / pres16_total, 
+         clinton_pct = clinton16 / pres16_total, 
+         otherpres16_pct = otherpres16 / pres16_total,
+         obama_pct = obama12 / pres12_total,
+         romney_pct = romney12 / pres12_total,
+         otherpres12_pct = otherpres12 / pres12_total
+  ) %>%
+  select(state, trump_pct, clinton_pct, otherpres16_pct, obama_pct, romney_pct, otherpres12_pct, white_pct, black_pct,
+         hispanic_pct, nonwhite_pct, foreignborn_pct, female_pct, age29andunder_pct, age65andolder_pct)
+
+to_abb <- function(x) {
+  i <- 1
+  for(i in 1:length(state.name)) {
+    if(x == state.name[i]) {
+      x <- state.abb[i]
+      break
+    }
+    i + 1
+  }
+  return(x)
+}
+
+election_context$state <- lapply(election_context$state, to_abb)
+
+election_context <- election_context %>%
+  mutate(state = as.character(state))
+
+result_context <- left_join(election_data, election_context, by = "state")
+         
+
 
 
 

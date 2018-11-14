@@ -1,7 +1,7 @@
 library(shiny)
 library(tidyverse)
 
-app_data <- readRDS("error.rds")
+app_data <- readRDS("result_context.rds")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
