@@ -12,8 +12,8 @@ ui <- fluidPage(
    # Sidebar
    sidebarLayout(
       sidebarPanel(
-        selectInput("y",
-                    "Y-axis:",
+        selectInput("x",
+                    "X-axis:",
                     c(`Polled Republican Advantage` = "rep_adv",
                       `Actual Republican Advantage` = "actual",
                       `Trump Voters` = "trump_pct",
@@ -30,12 +30,13 @@ ui <- fluidPage(
                       `Female Voters` = "female_pct",
                       `Young Voters (29 and under)` = "age29andunder_pct",
                       `Older Voters (65 and older)` = "age65andolder_pct")),
-        checkboxInput("check", label = "Add fit line")
+        checkboxInput("line", label = "Add linear model")
       ),
       
       # Show a plot
       mainPanel(
-         plotOutput("distPlot")
+         plotOutput("distPlot"),
+         verbatimTextOutput("modelSummary")
       )
    )
 )
@@ -44,13 +45,25 @@ ui <- fluidPage(
 server <- function(input, output) {
    
    output$distPlot <- renderPlot({
-     if(input$check == TRUE) {
-       ggplot(app_data, aes_string(x = "error", y = input$y)) + geom_point() + geom_smooth(method = "lm")
+     if(input$line == TRUE) {
+       ggplot(app_data, aes_string(x = input$x, y = "error")) + geom_jitter() + geom_smooth(method = "lm")
      } 
      else {
-       ggplot(app_data, aes_string(x = "error", y = input$y)) + geom_point()
+       ggplot(app_data, aes_string(x = input$x, y = "error")) + geom_jitter()
      }
    })
+   
+   
+   output$modelSummary <- renderPrint({
+     if(input$line == TRUE) {
+       model <- reactive({ form <- as.formula( paste( "error ~", paste(names(app_data)[names(app_data) %in% input$x], collapse="+")))
+       print(form)
+       lm(form, data=app_data)
+       })
+       summary(model())
+     }
+   })
+   
 }
 
 # Run the application 
