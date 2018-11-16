@@ -1,5 +1,6 @@
 library(shiny)
 library(tidyverse)
+library(stargazer)
 
 app_data <- readRDS("result_context.rds")
 
@@ -30,13 +31,20 @@ ui <- fluidPage(
                       `Female Voters` = "female_pct",
                       `Young Voters (29 and under)` = "age29andunder_pct",
                       `Older Voters (65 and older)` = "age65andolder_pct")),
-        checkboxInput("line", label = "Add linear model")
+        checkboxInput("line", label = "Add linear model"),
+        htmlOutput("see_table"),
+        htmlOutput("regression_table")
       ),
       
       # Show a plot
       mainPanel(
-         plotOutput("distPlot"),
-         verbatimTextOutput("modelSummary")
+        h3("Summary of Findings"),
+        h5("In a simple linear regression relating the error margin (the difference between polled Republican advantage 
+           and actual Republican advantage)in Upshot polls to 16 other political and demographic variables, only 
+           Republican advantage is significantly correlated with the error margin at the 95% confidence level. However, 
+           this may be influenced by a handful of districts with very high predicted Republican advantage but low
+           actual Republican advantage."),
+        plotOutput("distPlot")
       )
    )
 )
@@ -53,14 +61,18 @@ server <- function(input, output) {
      }
    })
    
+   output$see_table <- renderUI ({
+     if(input$line == TRUE) {
+       h5("Please consult the regression table below to see if the relationship is statistically significant:")
+     }
+   })
    
-   output$modelSummary <- renderPrint({
+   output$regression_table <- renderUI({
      if(input$line == TRUE) {
        model <- reactive({ form <- as.formula( paste( "error ~", paste(names(app_data)[names(app_data) %in% input$x], collapse="+")))
-       print(form)
        lm(form, data=app_data)
        })
-       summary(model())
+       HTML(stargazer(model(), type = "html"))
      }
    })
    
