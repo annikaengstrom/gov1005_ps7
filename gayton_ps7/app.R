@@ -89,9 +89,16 @@ server <- function(input, output) {
        df <- app_data[app_data$state %in% input$state,]
      })
      
-     x_axis <- match_label(input$x)
-     print(x_axis)
-     
+     for(i in 1:length(variables)) {
+       if(input$x == variables[i]) {
+         x_axis <- labels[i]
+         break
+       }
+       else {
+         i <- i + 1
+       }
+     }
+
      if(input$line == TRUE) {
        ggplot(filteredData(), aes_string(x = input$x, y = "error", col = "state")) + geom_jitter() + 
               geom_smooth(inherit.aes = FALSE, aes_string(x = input$x, y = "error"), method = "lm") + 
