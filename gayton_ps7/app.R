@@ -3,6 +3,9 @@ library(tidyverse)
 library(stargazer)
 
 app_data <- readRDS("result_context.rds")
+labels <- readRDS("labels.rds")
+variables <- readRDS("variables.rds")
+match_label <- readRDS("match_label.rds")
 
 # Define UI for application that draws a histogram
 ui <- fluidPage(
@@ -33,7 +36,34 @@ ui <- fluidPage(
                       `Older Voters (65 and older)` = "age65andolder_pct")),
         checkboxInput("line", label = "Add linear model"),
         htmlOutput("see_table"),
-        htmlOutput("regression_table")
+        htmlOutput("regression_table"),
+        h2("Choose states to display"),
+        checkboxGroupInput("state", "States to show:",
+                           c("Arizona" = "AZ",
+                             "California" = "CA",
+                             "Colorado" = "CO",
+                             "Florida" = "FL",
+                             "Georgia" = "GA",
+                             "Iowa" = "IA",
+                             "Illinois" = "IL",
+                             "Kansas" = "KS",
+                             "Kentucky" = "KY",
+                             "Maine" = "ME",
+                             "Michigan" = "MI",
+                             "Minnesota" = "MN", 
+                             "North Carolina" = "NC",
+                             "Nebraska" = "NE",
+                             "New Jersey" = "NJ",
+                             "New Mexico" = "NM",
+                             "New York" = "NY",
+                             "Ohio" = "OH",
+                             "Pennsylvania" = "PA",
+                             "Texas" = "TX",
+                             "Utah" = "UT",
+                             "Virginia" = "VA",
+                             "Washington" = "WA",
+                             "Wisconsin" = "WI",
+                             "West Virginia" = "WV"), selected = app_data$state)
       ),
       
       # Show a plot
@@ -41,9 +71,10 @@ ui <- fluidPage(
         h3("Summary of Findings"),
         h5("In a simple linear regression relating the error margin (the difference between polled Republican advantage 
            and actual Republican advantage)in Upshot polls to 16 other political and demographic variables, only 
-           Republican advantage is significantly correlated with the error margin at the 95% confidence level. However, 
-           this may be influenced by a handful of districts with very high predicted Republican advantage but low
-           actual Republican advantage."),
+           Republican advantage is significantly correlated with the error margin at the 95% confidence level when all
+           states are included. However, this may be influenced by a handful of districts with very high predicted 
+           Republican advantage but low actual Republican advantage. What states are those districts in? 
+           See what happens when you remove them from the data!"),
         plotOutput("distPlot")
       )
    )
@@ -53,11 +84,22 @@ ui <- fluidPage(
 server <- function(input, output) {
    
    output$distPlot <- renderPlot({
+     
+     filteredData <- reactive ({
+       df <- app_data[app_data$state %in% input$state,]
+     })
+     
+     x_axis <- match_label(input$x)
+     print(x_axis)
+     
      if(input$line == TRUE) {
-       ggplot(app_data, aes_string(x = input$x, y = "error")) + geom_jitter() + geom_smooth(method = "lm")
+       ggplot(filteredData(), aes_string(x = input$x, y = "error", col = "state")) + geom_jitter() + 
+              geom_smooth(inherit.aes = FALSE, aes_string(x = input$x, y = "error"), method = "lm") + 
+              labs(x = x_axis, y = "Percent Error", color = "State")
      } 
      else {
-       ggplot(app_data, aes_string(x = input$x, y = "error")) + geom_jitter()
+       ggplot(filteredData(), aes_string(x = input$x, y = "error", color = "state")) + geom_jitter() + 
+              labs(x = x_axis, y = "Percent Error", color = "State")
      }
    })
    
@@ -68,9 +110,13 @@ server <- function(input, output) {
    })
    
    output$regression_table <- renderUI({
+     filteredData <- reactive ({
+       df <- app_data[app_data$state %in% input$state,]
+     })
+     
      if(input$line == TRUE) {
-       model <- reactive({ form <- as.formula( paste( "error ~", paste(names(app_data)[names(app_data) %in% input$x], collapse="+")))
-       lm(form, data=app_data)
+       model <- reactive({ form <- as.formula( paste( "error ~", paste(names(filteredData())[names(filteredData()) %in% input$x], collapse="+")))
+       lm(form, data=filteredData())
        })
        HTML(stargazer(model(), type = "html"))
      }

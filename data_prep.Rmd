@@ -12,7 +12,7 @@ library(tidyverse)
 library(janitor)
 ```
 
-```{r}
+```{r message=FALSE}
 # download upshot elections data
 
 download.file(url = "https://goo.gl/ZRCBda",
@@ -217,5 +217,25 @@ election_context <- election_context %>%
 
 result_context <- left_join(election_data, election_context, by = "state")
 
+```
+
+```{r}
+labels <- c("Polled Republican Advantage", "Actual Republican Advantage","Trump Voters", "Clinton Voters", "Other Voters, 2016 Presidential Election", "Obama Voters", "Romney Voters",  "Other Voters, 2012 Presidential Election", "White Voters", "Black Voters", "Hispanic Voters", "Nonwhite Voters", "Foreign Born Voters",  "Female Voters", "Young Voters (29 and under)", "Older Voters (65 and older)")
+              
+variables <- c("rep_adv", "actual", "trump_pct", "clinton_pct", "otherpres16_pct", "obama_pct", "romney_pct", "otherpres12_pct", "white_pct", "black_pct", "hispanic_pct", "nonwhite_pct", "foreignborn_pct", "female_pct", "age29andunder_pct", "age65andolder_pct")
+
+match_label <- function(x) {
+  i = 1
+  for(i in 1:length(variables)) {
+    if(x == variables[i]) {
+      x_axis <- labels[i]
+      break
+    }
+    else {
+      i <- i + 1
+    }
+  }
+  return(x_axis)
+}
 ```
 
