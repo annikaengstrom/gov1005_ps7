@@ -63,7 +63,8 @@ ui <- fluidPage(
                              "Virginia" = "VA",
                              "Washington" = "WA",
                              "Wisconsin" = "WI",
-                             "West Virginia" = "WV"), selected = app_data$state)
+                             "West Virginia" = "WV"), selected = app_data$state),
+        actionButton("selectall", label="Select/Deselect all")
       ),
       
       # Show a plot
@@ -81,8 +82,73 @@ ui <- fluidPage(
 )
 
 # Define server logic required to draw a histogram
-server <- function(input, output) {
+server <- function(input, output, session) {
    
+  observe({
+    if (input$selectall > 0) {
+      if (input$selectall %% 2 == 0){
+        updateCheckboxGroupInput(session=session, 
+                                 inputId="state",
+                                 choices = list("Arizona" = "AZ",
+                                                "California" = "CA",
+                                                "Colorado" = "CO",
+                                                "Florida" = "FL",
+                                                "Georgia" = "GA",
+                                                "Iowa" = "IA",
+                                                "Illinois" = "IL",
+                                                "Kansas" = "KS",
+                                                "Kentucky" = "KY",
+                                                "Maine" = "ME",
+                                                "Michigan" = "MI",
+                                                "Minnesota" = "MN", 
+                                                "North Carolina" = "NC",
+                                                "Nebraska" = "NE",
+                                                "New Jersey" = "NJ",
+                                                "New Mexico" = "NM",
+                                                "New York" = "NY",
+                                                "Ohio" = "OH",
+                                                "Pennsylvania" = "PA",
+                                                "Texas" = "TX",
+                                                "Utah" = "UT",
+                                                "Virginia" = "VA",
+                                                "Washington" = "WA",
+                                                "Wisconsin" = "WI",
+                                                "West Virginia" = "WV"),
+                                 selected = app_data$state)
+        
+      } else {
+        updateCheckboxGroupInput(session=session, 
+                                 inputId="state",
+                                 choices = list("Arizona" = "AZ",
+                                                "California" = "CA",
+                                                "Colorado" = "CO",
+                                                "Florida" = "FL",
+                                                "Georgia" = "GA",
+                                                "Iowa" = "IA",
+                                                "Illinois" = "IL",
+                                                "Kansas" = "KS",
+                                                "Kentucky" = "KY",
+                                                "Maine" = "ME",
+                                                "Michigan" = "MI",
+                                                "Minnesota" = "MN", 
+                                                "North Carolina" = "NC",
+                                                "Nebraska" = "NE",
+                                                "New Jersey" = "NJ",
+                                                "New Mexico" = "NM",
+                                                "New York" = "NY",
+                                                "Ohio" = "OH",
+                                                "Pennsylvania" = "PA",
+                                                "Texas" = "TX",
+                                                "Utah" = "UT",
+                                                "Virginia" = "VA",
+                                                "Washington" = "WA",
+                                                "Wisconsin" = "WI",
+                                                "West Virginia" = "WV"),
+                                 selected = c())
+        
+      }}
+  })
+  
    output$distPlot <- renderPlot({
      
      filteredData <- reactive ({
