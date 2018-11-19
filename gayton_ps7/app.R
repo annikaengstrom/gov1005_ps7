@@ -188,10 +188,15 @@ server <- function(input, output, session) {
      })
      
      if(input$line == TRUE) {
-       model <- reactive({ form <- as.formula( paste( "error ~", paste(names(filteredData())[names(filteredData()) %in% input$x], collapse="+")))
-       lm(form, data=filteredData())
-       })
-       HTML(stargazer(model(), type = "html"))
+       if(length(input$state) > 0) {
+         model <- reactive({ form <- as.formula( paste( "error ~", paste(names(filteredData())[names(filteredData()) %in% input$x], collapse="+")))
+         lm(form, data=filteredData())
+         })
+         HTML(stargazer(model(), type = "html"))
+       }
+       else {
+         h5("No states selected.")
+       }
      }
    })
    
